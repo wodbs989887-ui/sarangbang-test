@@ -1,11 +1,277 @@
 <!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>사랑방 테스트</title>
-  </head>
-  <body>
-    <h1>사랑방 테스트 사이트 성공 🎉</h1>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>성경 읽은 장수 계산기</title>
+  <style>
+    :root {
+      --bg: #f7f4ee;
+      --card: #ffffff;
+      --text: #221f1a;
+      --muted: #6f675c;
+      --line: #e1d8ca;
+      --accent: #4b3425;
+      --accent-light: #f0e5d6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #fff8ed 0, var(--bg) 45%, #eee5d8 100%);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 28px 16px;
+    }
+
+    main {
+      width: 100%;
+      max-width: 720px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(55, 41, 25, 0.12);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(28px, 6vw, 42px);
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+    }
+
+    .desc {
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      resize: vertical;
+      font: inherit;
+      font-size: 17px;
+      background: #fffdf9;
+      color: var(--text);
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(75, 52, 37, 0.1);
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 13px 18px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: var(--accent);
+      color: white;
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .secondary {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+
+    .result {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 18px;
+      background: #fffdf9;
+      border: 1px solid var(--line);
+    }
+
+    .total {
+      font-size: clamp(26px, 7vw, 44px);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: var(--accent);
+    }
+
+    .message {
+      margin-top: 4px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .detail {
+      margin-top: 14px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .line {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    .error {
+      background: #ffe8e3;
+      color: #8f2b18;
+    }
+
+    .help {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    code {
+      background: var(--accent-light);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 7px;
+      font-family: inherit;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="card">
+      <span class="badge">Bible Reading Counter</span>
+      <h1>성경 읽은 장수 계산기</h1>
+      <p class="desc">읽은 말씀 범위를 입력하면 총 몇 장을 읽었는지 계산해줍니다.</p>
+
+      <textarea id="input" placeholder="예: 요나서1-4, 전도서1-11"></textarea>
+
+      <div class="buttons">
+        <button class="primary" onclick="countChapters()">계산하기</button>
+        <button class="secondary" onclick="fillExample()">예시 넣기</button>
+        <button class="secondary" onclick="clearInput()">초기화</button>
+      </div>
+
+      <div class="result" aria-live="polite">
+        <div class="total" id="total">0장</div>
+        <div class="message" id="message">총 0장 읽었습니다.</div>
+        <div class="detail" id="detail"></div>
+      </div>
+
+      <p class="help">
+        입력 가능 형식: <code>요나서1-4</code>, <code>전도서 1-11</code>, <code>창세기3</code><br />
+        쉼표 또는 줄바꿈으로 여러 범위를 구분할 수 있습니다.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    const input = document.getElementById("input");
+    const totalEl = document.getElementById("total");
+    const messageEl = document.getElementById("message");
+    const detailEl = document.getElementById("detail");
+
+    function parsePart(part) {
+      const match = part.match(/^(.+?)\s*(\d+)\s*(?:[-~–—]\s*(\d+))?$/);
+      if (!match) return { error: "형식을 인식하지 못했습니다." };
+
+      const book = match[1].trim();
+      const start = Number(match[2]);
+      const end = match[3] ? Number(match[3]) : start;
+
+      if (!book) return { error: "성경 이름을 입력해주세요." };
+      if (start <= 0 || end <= 0) return { error: "장 번호는 1 이상이어야 합니다." };
+      if (end < start) return { error: "끝 장이 시작 장보다 작습니다." };
+
+      return { book, start, end, count: end - start + 1 };
+    }
+
+    function countChapters() {
+      const raw = input.value.trim();
+      detailEl.innerHTML = "";
+
+      if (!raw) {
+        updateResult(0);
+        return;
+      }
+
+      const parts = raw.split(/[,，\n]+/).map(v => v.trim()).filter(Boolean);
+      let total = 0;
+
+      parts.forEach(part => {
+        const parsed = parsePart(part);
+        const div = document.createElement("div");
+        div.className = "line";
+
+        if (parsed.error) {
+          div.classList.add("error");
+          div.textContent = `${part}: ${parsed.error}`;
+        } else {
+          total += parsed.count;
+          const range = parsed.start === parsed.end ? `${parsed.start}` : `${parsed.start}-${parsed.end}`;
+          div.textContent = `${parsed.book} ${range}: ${parsed.count}장`;
+        }
+
+        detailEl.appendChild(div);
+      });
+
+      updateResult(total);
+    }
+
+    function updateResult(total) {
+      totalEl.textContent = `${total}장`;
+      messageEl.textContent = `총 ${total}장 읽었습니다.`;
+    }
+
+    function fillExample() {
+      input.value = "요나서1-4, 전도서1-11";
+      countChapters();
+    }
+
+    function clearInput() {
+      input.value = "";
+      detailEl.innerHTML = "";
+      updateResult(0);
+      input.focus();
+    }
+
+    input.addEventListener("keydown", event => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        countChapters();
+      }
+    });
+  </script>
+</body>
 </html>
