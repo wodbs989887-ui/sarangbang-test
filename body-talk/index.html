@@ -1,0 +1,1149 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>몸으로 말해요</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      --edge: clamp(20px, 4vw, 64px);
+      --line: 3px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #fff;
+      color: #000;
+    }
+
+    body {
+      min-height: 100dvh;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    button {
+      min-height: 64px;
+      padding: 14px 28px;
+      border: var(--line) solid #000;
+      border-radius: 0;
+      background: #fff;
+      color: #000;
+      font: inherit;
+      font-size: clamp(18px, 2.1vw, 30px);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover { background: #f2f2f2; }
+    button:active { background: #000; color: #fff; }
+    button:focus-visible { outline: 4px solid #000; outline-offset: 4px; }
+    button:disabled { border-color: #aaa; color: #999; background: #f5f5f5; cursor: not-allowed; }
+
+    #app { width: 100%; height: 100%; }
+
+    .screen {
+      position: relative;
+      display: flex;
+      width: 100%;
+      height: 100%;
+      min-height: 100dvh;
+      padding: calc(var(--edge) + env(safe-area-inset-top))
+               calc(var(--edge) + env(safe-area-inset-right))
+               calc(var(--edge) + env(safe-area-inset-bottom))
+               calc(var(--edge) + env(safe-area-inset-left));
+      animation: appear 120ms ease-out;
+    }
+
+    @keyframes appear {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .screen { animation: none; }
+    }
+
+    .center {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .hero-title {
+      margin: 0 0 clamp(30px, 6vh, 70px);
+      font-size: clamp(56px, 10vw, 150px);
+      line-height: 1.08;
+      letter-spacing: -.055em;
+      word-break: keep-all;
+    }
+
+    .category-title {
+      margin: 0 0 clamp(20px, 4vh, 44px);
+      font-size: clamp(64px, 12vw, 170px);
+      line-height: 1;
+      letter-spacing: -.04em;
+      word-break: keep-all;
+    }
+
+    .word {
+      max-width: 92%;
+      margin: 0;
+      letter-spacing: -.045em;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    /* 제시어 길이에 따라 화면을 넘지 않으면서 최대한 크게 보이도록 조절합니다. */
+    .word-short { font-size: clamp(64px, 11vw, 170px); line-height: 1.08; }
+    .word-medium { font-size: clamp(52px, 8vw, 122px); line-height: 1.1; }
+    .word-long { font-size: clamp(40px, 6vw, 90px); line-height: 1.18; }
+    .word-extra-long { font-size: clamp(32px, 4.8vw, 72px); line-height: 1.24; }
+
+    .small-note {
+      margin: 8px 0;
+      font-size: clamp(18px, 2.2vw, 32px);
+      line-height: 1.45;
+      word-break: keep-all;
+    }
+
+    .muted { color: #555; }
+    .start-button { min-width: 180px; }
+
+    .corner {
+      position: absolute;
+      bottom: calc(var(--edge) + env(safe-area-inset-bottom));
+      z-index: 2;
+    }
+
+    .corner.left { left: calc(var(--edge) + env(safe-area-inset-left)); }
+    .corner.right { right: calc(var(--edge) + env(safe-area-inset-right)); }
+
+    .time-control {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .time-control button { min-width: 100px; padding-inline: 18px; }
+    .time-value { min-width: 110px; font-size: clamp(22px, 2.5vw, 36px); font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; }
+
+    .round-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(190px, 1fr));
+      gap: clamp(16px, 2.5vw, 36px);
+      width: min(100%, 1000px);
+    }
+
+    .round-button {
+      min-height: clamp(145px, 24vh, 230px);
+      font-size: clamp(27px, 3.2vw, 46px);
+    }
+
+    .round-button small {
+      display: block;
+      margin-top: 12px;
+      font-size: .6em;
+      font-weight: 500;
+    }
+
+    .intro-details { margin-bottom: clamp(28px, 5vh, 58px); }
+
+    .rules-screen { flex-direction: column; }
+
+    .rules-title {
+      margin: 0;
+      text-align: center;
+      font-size: clamp(38px, 5vw, 70px);
+      line-height: 1.12;
+      letter-spacing: -.045em;
+      word-break: keep-all;
+    }
+
+    .rules-content {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: min(100%, 1120px);
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .rules-lead {
+      margin: clamp(18px, 3vh, 32px) 0;
+      font-size: clamp(28px, 3.4vw, 48px);
+      font-weight: 800;
+      line-height: 1.3;
+      word-break: keep-all;
+    }
+
+    .rules-flow {
+      display: grid;
+      gap: clamp(10px, 1.6vh, 18px);
+      width: min(100%, 980px);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      text-align: left;
+    }
+
+    .rules-flow li {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      align-items: center;
+      gap: 14px;
+      font-size: clamp(23px, 2.55vw, 36px);
+      font-weight: 700;
+      line-height: 1.28;
+      word-break: keep-all;
+    }
+
+    .rule-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border: 2px solid #000;
+      border-radius: 50%;
+      font-size: 23px;
+      font-weight: 800;
+    }
+
+    .rules-score {
+      margin: clamp(18px, 3vh, 30px) 0 0;
+      font-size: clamp(27px, 3.2vw, 46px);
+      font-weight: 900;
+      line-height: 1.25;
+      word-break: keep-all;
+    }
+
+    .rules-callout {
+      margin: clamp(14px, 2.4vh, 26px) 0 0;
+      font-size: clamp(25px, 3vw, 42px);
+      font-weight: 800;
+      line-height: 1.25;
+      word-break: keep-all;
+    }
+
+    .rules-ban {
+      margin: clamp(10px, 1.8vh, 18px) 0 0;
+      font-size: clamp(15px, 1.55vw, 22px);
+      font-weight: 700;
+      line-height: 1.45;
+      word-break: keep-all;
+    }
+
+    .rules-nav {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 16px;
+      padding-top: 14px;
+    }
+
+    .rules-nav button:first-child { justify-self: start; }
+    .rules-nav button:last-child { justify-self: end; }
+    .rules-page { font-size: clamp(16px, 1.6vw, 22px); font-weight: 800; font-variant-numeric: tabular-nums; }
+
+    .game-screen { flex-direction: column; }
+
+    .game-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      font-size: clamp(28px, 4vw, 58px);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .game-word { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 0; }
+
+    .game-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(18px, 3vw, 44px);
+      width: min(100%, 900px);
+      margin: 0 auto;
+    }
+
+    .game-actions button { min-height: clamp(78px, 13vh, 120px); font-size: clamp(28px, 4vw, 52px); }
+
+    .result-lines {
+      margin: 0 0 clamp(28px, 5vh, 58px);
+      font-size: clamp(34px, 5vw, 72px);
+      font-weight: 800;
+      line-height: 1.42;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .result-note { min-height: 1.5em; margin: -20px 0 24px; }
+
+    .save-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
+
+    .summary-screen { flex-direction: column; overflow-y: auto; }
+    .summary-title { margin: 0 0 clamp(18px, 3vh, 36px); text-align: center; font-size: clamp(38px, 5vw, 70px); }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(18px, 3vw, 44px);
+      width: min(100%, 1300px);
+      margin: 0 auto;
+    }
+
+    .score-card { border: var(--line) solid #000; padding: clamp(16px, 2.5vw, 34px); }
+    .score-card h2 { margin: 0 0 18px; font-size: clamp(28px, 3.2vw, 46px); }
+
+    .score-row {
+      display: grid;
+      grid-template-columns: minmax(130px, 1.15fr) repeat(3, minmax(72px, .75fr));
+      gap: 8px;
+      padding: 12px 0;
+      border-bottom: 1px solid #aaa;
+      font-size: clamp(15px, 1.65vw, 24px);
+      line-height: 1.3;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .score-row > span:not(:first-child) { text-align: right; }
+    .score-total { margin: 18px 0 0; font-size: clamp(18px, 2vw, 28px); font-weight: 800; line-height: 1.65; }
+    .summary-actions { display: flex; justify-content: center; gap: 14px; margin-top: clamp(20px, 3vh, 38px); }
+
+    .editor-screen {
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+    }
+
+    .editor-header { text-align: center; }
+    .editor-title { margin: 0 0 8px; font-size: clamp(36px, 4.5vw, 64px); }
+    .editor-help { margin: 0; font-size: clamp(16px, 1.7vw, 23px); line-height: 1.5; }
+
+    .editor-example,
+    .editor-field {
+      display: grid;
+      gap: 8px;
+      font-size: clamp(16px, 1.5vw, 21px);
+      font-weight: 700;
+    }
+
+    .editor-example { width: min(100%, 1100px); margin: 0 auto; }
+
+    .editor-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(16px, 2.5vw, 32px);
+      width: min(100%, 1300px);
+      margin: 0 auto;
+    }
+
+    .editor-card { border: var(--line) solid #000; padding: clamp(16px, 2vw, 28px); }
+    .editor-card h2 { margin: 0 0 16px; font-size: clamp(26px, 2.8vw, 40px); }
+    .editor-fields { display: grid; gap: 14px; }
+
+    .editor-field textarea,
+    .editor-example textarea {
+      width: 100%;
+      min-height: 76px;
+      resize: vertical;
+      padding: 12px;
+      border: 2px solid #000;
+      border-radius: 0;
+      background: #fff;
+      color: #000;
+      font: inherit;
+      font-weight: 500;
+      line-height: 1.45;
+    }
+
+    .editor-field textarea:focus,
+    .editor-example textarea:focus { outline: 4px solid #000; outline-offset: 2px; }
+
+    .editor-message {
+      min-height: 1.5em;
+      margin: 0;
+      text-align: center;
+      font-size: clamp(16px, 1.6vw, 22px);
+      font-weight: 700;
+    }
+
+    .editor-actions {
+      position: sticky;
+      bottom: calc(-1 * var(--edge));
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      padding: 18px 0 calc(8px + env(safe-area-inset-bottom));
+      background: #fff;
+    }
+
+    @media (max-width: 760px), (max-height: 560px) {
+      :root { --edge: 18px; --line: 2px; }
+      button { min-height: 54px; padding: 10px 18px; }
+      .round-list { gap: 10px; grid-template-columns: repeat(3, 1fr); }
+      .round-button { min-width: 0; min-height: 115px; padding-inline: 8px; }
+      .corner.right { bottom: calc(var(--edge) + 72px + env(safe-area-inset-bottom)); }
+      .time-control { gap: 7px; }
+      .time-control button { min-width: 76px; padding-inline: 10px; }
+      .score-row { grid-template-columns: minmax(100px, 1fr) repeat(3, minmax(58px, .6fr)); }
+      .rules-title { font-size: clamp(30px, 5.5vw, 48px); }
+      .rules-lead { margin-block: 10px; font-size: clamp(22px, 3.6vw, 34px); }
+      .rules-flow { gap: 7px; }
+      .rules-flow li { grid-template-columns: 36px 1fr; gap: 9px; font-size: clamp(18px, 2.65vw, 27px); }
+      .rule-number { width: 32px; height: 32px; font-size: 18px; }
+      .rules-score { margin-top: 10px; font-size: clamp(22px, 3.3vw, 34px); }
+      .rules-callout { margin-top: 8px; font-size: clamp(21px, 3vw, 31px); }
+      .rules-ban { margin-top: 6px; }
+      .rules-nav { padding-top: 8px; }
+    }
+
+    @media (max-width: 700px) and (orientation: portrait) {
+      .round-list { grid-template-columns: 1fr; width: min(100%, 420px); }
+      .round-button { min-height: 105px; }
+      .score-grid { grid-template-columns: 1fr; }
+      .summary-screen { padding-bottom: 24px; }
+      .summary-actions { padding-bottom: env(safe-area-inset-bottom); }
+      .editor-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main id="app" aria-live="polite"></main>
+
+  <script>
+    "use strict";
+
+    const ROUND3_STORAGE_KEY = "bodyTalkRound3ConfigV1";
+
+    // 편집 화면의 '기본값 불러오기'에서 사용하는 초기 문장입니다.
+    const ROUND3_DEFAULT_CONFIG = {
+      example: "채플 끝나고 바로 집으로 도망치는 내향형 순원",
+      teamWords: {
+        1: [
+          "낮에는 따사로운 머리 푸는 인간 여자",
+          "물 위를 걷는 불안형 베드로와 안정형 예수님",
+          "먹방유튜버 세례 요한 형님의 메뚜기&석청 먹방쇼",
+          "찬양을 시작해버린 화장실이 급한 인도자",
+          "오늘 대표기도 있는 거 까먹은 순장",
+          "외향형 순장들 사이에 집 가고 싶은 내향형 순원",
+          "평창가는 버스 놓친 순장/순원"
+        ],
+        2: [
+          "물고기에게 먹힌 갸루 요나가 추는 파라파라댄스",
+          "나 기원전 1393년생 모세형인데, 홍해 갈랐다 릴스 찍는 모세",
+          "콘티 받고 인도자한테 따지는 기타",
+          "여름수련회에 짐을 안 들고 온 순장/순원",
+          "예배시간에 졸다가 소리지르는 목사님 소리에 깜짝 놀란 권사님",
+          "옆에 드럼 때문에 귀 터지는 피아노 반주자",
+          "저녁집회 때 설교 안 듣고 밤에 반딧불이 구경하는 순장/순원"
+        ]
+      }
+    };
+
+    // 실행 중 사용하는 3라운드 문장. 저장된 편집 내용이 있으면 아래 배열을 교체합니다.
+    const ROUND3_TEAM_WORDS = {
+      1: [...ROUND3_DEFAULT_CONFIG.teamWords[1]],
+      2: [...ROUND3_DEFAULT_CONFIG.teamWords[2]]
+    };
+
+    // 제시어 수정 영역: example은 소개용이며 게임에 나오지 않습니다.
+    // limit은 각 팀이 해당 라운드에서 볼 수 있는 최대 제시어 수입니다.
+    const ROUND_DATA = {
+      1: {
+        title: "동물",
+        example: "사자",
+        limit: 20,
+        words: [
+          "강아지", "고양이", "토끼", "코끼리", "기린", "원숭이", "펭귄", "개구리", "닭", "오리",
+          "말", "돼지", "소", "양", "호랑이", "곰", "여우", "늑대", "거북이", "악어",
+          "상어", "문어", "고래", "돌고래", "낙타", "다람쥐", "고슴도치", "코알라", "판다", "하마",
+          "코뿔소", "독수리", "부엉이", "박쥐", "사슴", "미어캣", "해파리", "공작새", "타조", "물개"
+        ]
+      },
+      2: {
+        title: "스포츠",
+        example: "야구",
+        limit: 20,
+        words: [
+          "축구", "농구", "배구", "수영", "달리기", "줄넘기", "탁구", "볼링", "자전거", "태권도",
+          "씨름", "피구", "배드민턴", "골프", "양궁", "펜싱", "스키", "스케이트", "복싱", "유도",
+          "레슬링", "클라이밍", "서핑", "승마", "테니스", "마라톤", "높이뛰기", "멀리뛰기", "역도", "컬링",
+          "다이빙", "피겨스케이팅", "리듬체조", "스노보드", "봅슬레이", "허들", "장대높이뛰기", "핸드볼", "족구", "럭비"
+        ]
+      },
+      3: {
+        title: "문장",
+        example: ROUND3_DEFAULT_CONFIG.example,
+        limit: 7,
+        teamWords: ROUND3_TEAM_WORDS,
+        words: [...ROUND3_TEAM_WORDS[1], ...ROUND3_TEAM_WORDS[2]]
+      }
+    };
+
+    loadSavedRound3Config();
+
+    const app = document.getElementById("app");
+
+    // 게임 전체 상태
+    let currentScreen = "home";
+    let currentRound = null;
+    let currentPlayTeam = null;
+    let currentWord = "";
+    const MIN_GAME_DURATION = 30;
+    const MAX_GAME_DURATION = 3600;
+    const GAME_DURATION_STEP = 10;
+    let gameDuration = 60;
+    let timeLeft = gameDuration;
+    let correctCount = 0;
+    let passCount = 0;
+    let progressCount = 0;
+    let timerId = null;
+    let actionLocked = false;
+    let roundEndReason = "";
+
+    // 팀별 결과와 라운드별 사용 제시어 기록
+    let teamRecords = createEmptyTeamRecords();
+    let usedWordsByRound = { 1: new Set(), 2: new Set(), 3: new Set() };
+
+    function createEmptyTeamRecords() {
+      const records = { 1: {}, 2: {} };
+      for (const team of [1, 2]) {
+        for (const round of [1, 2, 3]) {
+          records[team][round] = { correct: 0, pass: 0, progress: 0 };
+        }
+      }
+      return records;
+    }
+
+    function clearTimer() {
+      if (timerId !== null) {
+        clearInterval(timerId);
+        timerId = null;
+      }
+    }
+
+    function goTo(screen) {
+      if (currentScreen === "game" && screen !== "game") clearTimer();
+      currentScreen = screen;
+      renderScreen();
+    }
+
+    function renderScreen() {
+      switch (currentScreen) {
+        case "home": renderHome(); break;
+        case "rules1": renderRules1(); break;
+        case "rules2": renderRules2(); break;
+        case "rounds": renderRoundSelect(); break;
+        case "intro": renderIntro(); break;
+        case "game": renderGame(); break;
+        case "result": renderResult(); break;
+        case "summary": renderSummary(); break;
+        case "editor": renderRound3Editor(); break;
+      }
+    }
+
+    function renderHome() {
+      app.innerHTML = `
+        <section class="screen">
+          <div class="center">
+            <h1 class="hero-title">몸으로 말해요</h1>
+            <button class="start-button" id="start-main">시작</button>
+          </div>
+          <button class="corner left" id="open-summary">팀 합산</button>
+          <div class="corner right time-control" aria-label="게임시간 조절">
+            <button id="time-minus" aria-label="게임시간 10초 줄이기">-10초</button>
+            <span class="time-value" id="time-value">${formatTime(gameDuration)}</span>
+            <button id="time-plus" aria-label="게임시간 10초 늘리기">+10초</button>
+          </div>
+        </section>`;
+
+      document.getElementById("start-main").addEventListener("click", () => goTo("rules1"));
+      document.getElementById("open-summary").addEventListener("click", () => goTo("summary"));
+      document.getElementById("time-minus").addEventListener("click", () => changeDuration(-GAME_DURATION_STEP));
+      document.getElementById("time-plus").addEventListener("click", () => changeDuration(GAME_DURATION_STEP));
+      syncDurationControl();
+    }
+
+    function changeDuration(delta) {
+      setDuration(gameDuration + delta);
+    }
+
+    function setDuration(value) {
+      gameDuration = Math.min(MAX_GAME_DURATION, Math.max(MIN_GAME_DURATION, value));
+      syncDurationControl();
+    }
+
+    function syncDurationControl() {
+      const value = document.getElementById("time-value");
+      const minus = document.getElementById("time-minus");
+      const plus = document.getElementById("time-plus");
+      if (value) value.textContent = formatTime(gameDuration);
+      if (minus) minus.disabled = gameDuration <= MIN_GAME_DURATION;
+      if (plus) plus.disabled = gameDuration >= MAX_GAME_DURATION;
+    }
+
+    function renderRules1() {
+      app.innerHTML = `
+        <section class="screen rules-screen">
+          <h1 class="rules-title">1·2라운드: 릴레이 몸으로 말해요</h1>
+          <div class="rules-content">
+            <p class="rules-lead">1라운드 동물 · 2라운드 스포츠 · 팀별 60초</p>
+            <ol class="rules-flow">
+              <li><span class="rule-number">1</span><span>팀원들이 한 줄로 선다</span></li>
+              <li><span class="rule-number">2</span><span>한 명씩 앞으로 나와 몸으로 설명한다</span></li>
+              <li><span class="rule-number">3</span><span>정답 또는 패스하면 바로 다음 사람으로 교대한다</span></li>
+            </ol>
+            <p class="rules-score">정답 1개당 1점 · 패스 0점</p>
+            <p class="rules-callout">빠르게, 많이, 돌아가면서!</p>
+          </div>
+          <nav class="rules-nav" aria-label="룰 안내 이동">
+            <button id="rules-home">처음으로</button>
+            <span class="rules-page">1 / 2</span>
+            <button id="rules-next">다음</button>
+          </nav>
+        </section>`;
+
+      document.getElementById("rules-home").addEventListener("click", () => goTo("home"));
+      document.getElementById("rules-next").addEventListener("click", () => goTo("rules2"));
+    }
+
+    function renderRules2() {
+      app.innerHTML = `
+        <section class="screen rules-screen">
+          <h1 class="rules-title">3라운드: 문장형 에이스전</h1>
+          <div class="rules-content">
+            <p class="rules-lead">각 팀 대표 설명자 1~2명 출전</p>
+            <ol class="rules-flow">
+              <li><span class="rule-number">1</span><span>대표가 문장형 제시어를 보고 몸으로 설명한다</span></li>
+              <li><span class="rule-number">2</span><span>나머지 팀원들이 정답을 맞힌다</span></li>
+              <li><span class="rule-number">3</span><span>완전히 같지 않아도 의미가 가까우면 인정한다</span></li>
+            </ol>
+            <p class="rules-score">정답 1개당 2점 · 패스 가능</p>
+            <p class="rules-callout">재미있게 표현하는 것도 실력입니다.</p>
+            <p class="rules-ban">말하기 금지 · 입모양 금지 · 글자 수 표시 금지 · 소리 내기 금지</p>
+          </div>
+          <nav class="rules-nav" aria-label="룰 안내 이동">
+            <button id="rules-prev">이전</button>
+            <span class="rules-page">2 / 2</span>
+            <button id="rules-start">게임 시작</button>
+          </nav>
+        </section>`;
+
+      document.getElementById("rules-prev").addEventListener("click", () => goTo("rules1"));
+      document.getElementById("rules-start").addEventListener("click", () => goTo("rounds"));
+    }
+
+    function renderRoundSelect() {
+      app.innerHTML = `
+        <section class="screen">
+          <div class="center">
+            <div class="round-list">
+              ${[1, 2, 3].map(round => `
+                <button class="round-button" data-round="${round}">
+                  ${round}라운드<small>${ROUND_DATA[round].title}</small>
+                </button>`).join("")}
+            </div>
+          </div>
+          <button class="corner left" id="go-home">처음으로</button>
+        </section>`;
+
+      document.querySelectorAll("[data-round]").forEach(button => {
+        button.addEventListener("click", () => {
+          currentRound = Number(button.dataset.round);
+          currentPlayTeam = null;
+          goTo("intro");
+        });
+      });
+      document.getElementById("go-home").addEventListener("click", () => goTo("home"));
+    }
+
+    function renderIntro() {
+      const data = ROUND_DATA[currentRound];
+      const isReady = data.words.length > 0;
+      const startControls = currentRound === 3
+        ? `<div class="save-actions">
+            <button data-start-team="1" ${isReady ? "" : "disabled"}>1팀 시작</button>
+            <button data-start-team="2" ${isReady ? "" : "disabled"}>2팀 시작</button>
+          </div>`
+        : `<button class="start-button" id="start-round" ${isReady ? "" : "disabled"}>시작</button>`;
+      const editorControl = currentRound === 3
+        ? `<button class="corner right" id="edit-round3">문장 편집</button>`
+        : "";
+      app.innerHTML = `
+        <section class="screen">
+          <div class="center">
+            <h1 class="category-title">${data.title}</h1>
+            <div class="intro-details">
+              ${isReady
+                ? (data.example ? `<p class="small-note">예시: ${data.example}</p>` : "")
+                : `<p class="small-note">제시어 준비 중</p><p class="small-note muted">문장 제시어를 아직 입력하지 않았습니다.</p>`}
+              <p class="small-note">팀당 최대 ${data.limit}개 / 전체 제시어 ${data.words.length}개</p>
+            </div>
+            ${startControls}
+          </div>
+          <button class="corner left" id="back-rounds">이전으로</button>
+          ${editorControl}
+        </section>`;
+
+      const startButton = document.getElementById("start-round");
+      if (startButton) startButton.addEventListener("click", () => startGame(null));
+      document.querySelectorAll("[data-start-team]").forEach(button => {
+        button.addEventListener("click", () => startGame(Number(button.dataset.startTeam)));
+      });
+      const editButton = document.getElementById("edit-round3");
+      if (editButton) editButton.addEventListener("click", () => goTo("editor"));
+      document.getElementById("back-rounds").addEventListener("click", () => goTo("rounds"));
+    }
+
+    function startGame(team) {
+      clearTimer();
+      currentPlayTeam = team;
+      currentWord = "";
+      timeLeft = gameDuration;
+      correctCount = 0;
+      passCount = 0;
+      progressCount = 0;
+      actionLocked = false;
+      roundEndReason = "";
+      currentScreen = "game";
+
+      if (!showNextWord()) return;
+      renderGame();
+
+      // 한 게임에는 interval을 정확히 하나만 사용합니다.
+      timerId = setInterval(() => {
+        if (currentScreen !== "game") {
+          clearTimer();
+          return;
+        }
+        timeLeft -= 1;
+        updateGameHeader();
+        if (timeLeft <= 0) finishGame("time");
+      }, 1000);
+    }
+
+    function getUnusedWords() {
+      const data = ROUND_DATA[currentRound];
+      const pool = currentRound === 3 && currentPlayTeam
+        ? data.teamWords[currentPlayTeam]
+        : data.words;
+      return pool.filter(word => !usedWordsByRound[currentRound].has(word));
+    }
+
+    function showNextWord() {
+      const unused = getUnusedWords();
+      if (unused.length === 0) {
+        finishGame("exhausted");
+        return false;
+      }
+
+      currentWord = unused[Math.floor(Math.random() * unused.length)];
+      // 화면에 한 번이라도 표시된 순간 사용 처리하여 다음 팀에도 다시 나오지 않게 합니다.
+      usedWordsByRound[currentRound].add(currentWord);
+      return true;
+    }
+
+    function renderGame() {
+      const roundLimit = ROUND_DATA[currentRound].limit;
+      app.innerHTML = `
+        <section class="screen game-screen">
+          <header class="game-top">
+            <span id="game-progress">${currentPlayTeam ? `${currentPlayTeam}팀 · ` : ""}${progressCount} / ${roundLimit}</span>
+            <span id="game-time">${formatTime(timeLeft)}</span>
+          </header>
+          <div class="game-word"><h1 class="word ${getWordSizeClass(currentWord)}" id="current-word">${currentWord}</h1></div>
+          <div class="game-actions">
+            <button id="correct-button">맞힘</button>
+            <button id="pass-button">패스</button>
+          </div>
+        </section>`;
+
+      document.getElementById("correct-button").addEventListener("click", () => processAnswer("correct"));
+      document.getElementById("pass-button").addEventListener("click", () => processAnswer("pass"));
+    }
+
+    function updateGameHeader() {
+      const progress = document.getElementById("game-progress");
+      const time = document.getElementById("game-time");
+      if (progress) progress.textContent = `${currentPlayTeam ? `${currentPlayTeam}팀 · ` : ""}${progressCount} / ${ROUND_DATA[currentRound].limit}`;
+      if (time) time.textContent = formatTime(timeLeft);
+    }
+
+    function formatTime(seconds) {
+      const safe = Math.max(0, seconds);
+      return `${String(Math.floor(safe / 60)).padStart(2, "0")}:${String(safe % 60).padStart(2, "0")}`;
+    }
+
+    function getWordSizeClass(word) {
+      const length = word.replace(/\s/g, "").length;
+      if (length <= 6) return "word-short";
+      if (length <= 14) return "word-medium";
+      if (length <= 24) return "word-long";
+      return "word-extra-long";
+    }
+
+    function processAnswer(type) {
+      if (currentScreen !== "game" || actionLocked || timeLeft <= 0) return;
+      actionLocked = true;
+
+      if (type === "correct") correctCount += 1;
+      if (type === "pass") passCount += 1;
+      progressCount += 1;
+
+      if (progressCount >= ROUND_DATA[currentRound].limit) {
+        finishGame("limit");
+        return;
+      }
+
+      if (!showNextWord()) return;
+      const wordElement = document.getElementById("current-word");
+      if (wordElement) {
+        wordElement.textContent = currentWord;
+        wordElement.className = `word ${getWordSizeClass(currentWord)}`;
+      }
+      updateGameHeader();
+
+      // 같은 터치/키 입력이 연속 처리되지 않도록 아주 짧게 잠급니다.
+      window.setTimeout(() => { actionLocked = false; }, 120);
+    }
+
+    function finishGame(reason) {
+      if (currentScreen !== "game") return;
+      clearTimer();
+      actionLocked = true;
+      roundEndReason = reason;
+      goTo("result");
+    }
+
+    function renderResult() {
+      const roundLimit = ROUND_DATA[currentRound].limit;
+      const saveControls = currentRound === 3 && currentPlayTeam
+        ? `<button data-save-team="${currentPlayTeam}">${currentPlayTeam}팀에 저장</button>`
+        : `<button data-save-team="1">1팀에 저장</button>
+           <button data-save-team="2">2팀에 저장</button>`;
+      const exhaustedNote = roundEndReason === "exhausted"
+        ? `<p class="small-note result-note">제시어를 모두 사용했습니다</p>`
+        : `<p class="small-note result-note">&nbsp;</p>`;
+
+      app.innerHTML = `
+        <section class="screen">
+          <div class="center">
+            <div class="result-lines">
+              <div>맞힘: ${correctCount}개</div>
+              <div>패스: ${passCount}개</div>
+              <div>진행: ${progressCount} / ${roundLimit}</div>
+            </div>
+            ${exhaustedNote}
+            <div class="save-actions">
+              ${saveControls}
+              <button id="skip-save">저장 안 함</button>
+            </div>
+          </div>
+        </section>`;
+
+      document.querySelectorAll("[data-save-team]").forEach(button => {
+        button.addEventListener("click", () => saveResult(Number(button.dataset.saveTeam)));
+      });
+      document.getElementById("skip-save").addEventListener("click", () => {
+        currentPlayTeam = null;
+        goTo("rounds");
+      });
+    }
+
+    function saveResult(team) {
+      teamRecords[team][currentRound] = {
+        correct: correctCount,
+        pass: passCount,
+        progress: progressCount
+      };
+      currentPlayTeam = null;
+      goTo("rounds");
+    }
+
+    function cloneDefaultRound3Config() {
+      return {
+        example: ROUND3_DEFAULT_CONFIG.example,
+        teamWords: {
+          1: [...ROUND3_DEFAULT_CONFIG.teamWords[1]],
+          2: [...ROUND3_DEFAULT_CONFIG.teamWords[2]]
+        }
+      };
+    }
+
+    function isValidRound3Config(config) {
+      if (!config || typeof config.example !== "string" || !config.teamWords) return false;
+      const team1 = config.teamWords[1];
+      const team2 = config.teamWords[2];
+      if (!Array.isArray(team1) || !Array.isArray(team2)) return false;
+      if (team1.length !== 7 || team2.length !== 7) return false;
+
+      const example = config.example.trim();
+      const allWords = [...team1, ...team2].map(word => typeof word === "string" ? word.trim() : "");
+      return Boolean(example)
+        && allWords.every(Boolean)
+        && new Set(allWords).size === 14
+        && !allWords.includes(example);
+    }
+
+    function applyRound3Config(config) {
+      ROUND_DATA[3].example = config.example.trim();
+      ROUND3_TEAM_WORDS[1] = config.teamWords[1].map(word => word.trim());
+      ROUND3_TEAM_WORDS[2] = config.teamWords[2].map(word => word.trim());
+      ROUND_DATA[3].teamWords = ROUND3_TEAM_WORDS;
+      ROUND_DATA[3].words = [...ROUND3_TEAM_WORDS[1], ...ROUND3_TEAM_WORDS[2]];
+    }
+
+    function loadSavedRound3Config() {
+      try {
+        const saved = window.localStorage.getItem(ROUND3_STORAGE_KEY);
+        if (!saved) return;
+        const config = JSON.parse(saved);
+        if (isValidRound3Config(config)) applyRound3Config(config);
+      } catch (_) {
+        // 저장소를 사용할 수 없거나 데이터가 손상되면 HTML에 들어 있는 기본값을 사용합니다.
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function renderEditorTeam(team, words) {
+      return `
+        <section class="editor-card">
+          <h2>${team}팀 제시어</h2>
+          <div class="editor-fields">
+            ${words.map((word, index) => `
+              <label class="editor-field">
+                <span>${team}팀 ${index + 1}번</span>
+                <textarea data-editor-team="${team}" rows="2">${escapeHtml(word)}</textarea>
+              </label>`).join("")}
+          </div>
+        </section>`;
+    }
+
+    function renderRound3Editor() {
+      app.innerHTML = `
+        <section class="screen editor-screen">
+          <header class="editor-header">
+            <h1 class="editor-title">3라운드 문장 편집</h1>
+            <p class="editor-help">예시는 게임에 나오지 않습니다. 각 팀에 빈칸 없이 7개를 입력하세요.<br>저장 내용은 이 기기의 브라우저에 보관됩니다.</p>
+          </header>
+          <label class="editor-example">
+            <span>화면에 보여줄 예시</span>
+            <textarea id="editor-example" rows="2">${escapeHtml(ROUND_DATA[3].example)}</textarea>
+          </label>
+          <div class="editor-grid">
+            ${renderEditorTeam(1, ROUND3_TEAM_WORDS[1])}
+            ${renderEditorTeam(2, ROUND3_TEAM_WORDS[2])}
+          </div>
+          <p class="editor-message" id="editor-message" role="status" aria-live="polite"></p>
+          <div class="editor-actions">
+            <button id="editor-save">저장하고 돌아가기</button>
+            <button id="editor-cancel">취소</button>
+            <button id="editor-defaults">기본값 불러오기</button>
+          </div>
+        </section>`;
+
+      document.getElementById("editor-save").addEventListener("click", saveRound3Editor);
+      document.getElementById("editor-cancel").addEventListener("click", () => goTo("intro"));
+      document.getElementById("editor-defaults").addEventListener("click", () => {
+        fillRound3Editor(cloneDefaultRound3Config());
+        showEditorMessage("기본값을 불러왔습니다. 저장해야 적용됩니다.");
+      });
+    }
+
+    function readRound3Editor() {
+      const readTeam = team => Array.from(document.querySelectorAll(`[data-editor-team="${team}"]`))
+        .map(field => field.value.trim());
+      return {
+        example: document.getElementById("editor-example").value.trim(),
+        teamWords: { 1: readTeam(1), 2: readTeam(2) }
+      };
+    }
+
+    function fillRound3Editor(config) {
+      document.getElementById("editor-example").value = config.example;
+      for (const team of [1, 2]) {
+        const fields = document.querySelectorAll(`[data-editor-team="${team}"]`);
+        fields.forEach((field, index) => { field.value = config.teamWords[team][index]; });
+      }
+    }
+
+    function showEditorMessage(message) {
+      const messageElement = document.getElementById("editor-message");
+      if (messageElement) messageElement.textContent = message;
+    }
+
+    function saveRound3Editor() {
+      const config = readRound3Editor();
+      const allWords = [...config.teamWords[1], ...config.teamWords[2]];
+
+      if (!config.example) {
+        showEditorMessage("예시 문장을 입력해 주세요.");
+        return;
+      }
+      if (allWords.some(word => !word)) {
+        showEditorMessage("모든 제시어 칸을 채워 주세요.");
+        return;
+      }
+      if (new Set(allWords).size !== 14) {
+        showEditorMessage("팀 전체에서 중복된 제시어가 있습니다.");
+        return;
+      }
+      if (allWords.includes(config.example)) {
+        showEditorMessage("예시 문장은 실제 제시어와 다르게 입력해 주세요.");
+        return;
+      }
+
+      applyRound3Config(config);
+      usedWordsByRound[3] = new Set();
+
+      try {
+        window.localStorage.setItem(ROUND3_STORAGE_KEY, JSON.stringify(config));
+      } catch (_) {
+        showEditorMessage("현재 실행에는 반영됐지만 브라우저 저장소에 보관하지 못했습니다.");
+        return;
+      }
+
+      goTo("intro");
+    }
+
+    function renderSummary() {
+      app.innerHTML = `
+        <section class="screen summary-screen">
+          <h1 class="summary-title">팀 합산</h1>
+          <div class="score-grid">
+            ${[1, 2].map(team => renderTeamCard(team)).join("")}
+          </div>
+          <div class="summary-actions">
+            <button id="summary-home">처음으로</button>
+            <button id="reset-records">기록 초기화</button>
+          </div>
+        </section>`;
+
+      document.getElementById("summary-home").addEventListener("click", () => goTo("home"));
+      document.getElementById("reset-records").addEventListener("click", resetRecords);
+    }
+
+    function renderTeamCard(team) {
+      const totals = [1, 2, 3].reduce((sum, round) => {
+        const record = teamRecords[team][round];
+        sum.correct += record.correct;
+        sum.pass += record.pass;
+        sum.progress += record.progress;
+        return sum;
+      }, { correct: 0, pass: 0, progress: 0 });
+
+      return `
+        <article class="score-card">
+          <h2>${team}팀</h2>
+          ${[1, 2, 3].map(round => {
+            const record = teamRecords[team][round];
+            return `<div class="score-row">
+              <span>${round}라운드 ${ROUND_DATA[round].title}</span>
+              <span>맞힘 ${record.correct}</span>
+              <span>패스 ${record.pass}</span>
+              <span>진행 ${record.progress}</span>
+            </div>`;
+          }).join("")}
+          <p class="score-total">
+            맞힘 합계: ${totals.correct}개<br>
+            패스 합계: ${totals.pass}개<br>
+            진행 합계: ${totals.progress}개
+          </p>
+        </article>`;
+    }
+
+    function resetRecords() {
+      if (!window.confirm("팀 기록과 라운드별 사용 제시어를 모두 초기화할까요?")) return;
+      teamRecords = createEmptyTeamRecords();
+      usedWordsByRound = { 1: new Set(), 2: new Set(), 3: new Set() };
+      renderSummary();
+    }
+
+    function goBack() {
+      if (currentScreen === "rules1") goTo("home");
+      else if (currentScreen === "rules2") goTo("rules1");
+      else if (currentScreen === "rounds") goTo("rules2");
+      else if (currentScreen === "intro") goTo("rounds");
+      else if (currentScreen === "result") {
+        currentPlayTeam = null;
+        goTo("rounds");
+      }
+      else if (currentScreen === "summary") goTo("home");
+      else if (currentScreen === "editor") goTo("intro");
+    }
+
+    async function requestFullscreen() {
+      try {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        }
+      } catch (_) {
+        // 전체화면을 지원하지 않거나 브라우저가 거부하면 현재 화면을 그대로 유지합니다.
+      }
+    }
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") return;
+
+      if (event.key.toLowerCase() === "f") {
+        event.preventDefault();
+        requestFullscreen();
+        return;
+      }
+
+      if (event.key === "Backspace") {
+        event.preventDefault();
+        goBack();
+        return;
+      }
+
+      if (currentScreen !== "game" || event.repeat) return;
+      if (event.code === "Space" || event.key === "Enter") {
+        event.preventDefault();
+        processAnswer("correct");
+      } else if (event.key.toLowerCase() === "p") {
+        event.preventDefault();
+        processAnswer("pass");
+      }
+    });
+
+    // 데이터 개수 실수를 빠르게 발견할 수 있는 개발용 확인입니다.
+    console.assert(ROUND_DATA[1].words.length === 40, "1라운드 제시어는 40개여야 합니다.");
+    console.assert(ROUND_DATA[2].words.length === 40, "2라운드 제시어는 40개여야 합니다.");
+    console.assert(ROUND_DATA[3].words.length === 14, "3라운드 제시어는 14개여야 합니다.");
+    console.assert(new Set(ROUND_DATA[3].words).size === 14, "3라운드 제시어는 중복 없이 14개여야 합니다.");
+    console.assert(ROUND3_TEAM_WORDS[1].length === 7, "3라운드 1팀 제시어는 7개여야 합니다.");
+    console.assert(ROUND3_TEAM_WORDS[2].length === 7, "3라운드 2팀 제시어는 7개여야 합니다.");
+    console.assert(ROUND_DATA[3].limit === 7, "3라운드는 팀당 최대 7개여야 합니다.");
+    console.assert(!ROUND_DATA[1].words.includes(ROUND_DATA[1].example), "동물 예시는 게임 제시어와 분리해야 합니다.");
+    console.assert(!ROUND_DATA[2].words.includes(ROUND_DATA[2].example), "스포츠 예시는 게임 제시어와 분리해야 합니다.");
+    console.assert(!ROUND_DATA[3].words.includes(ROUND_DATA[3].example), "문장 예시는 게임 제시어와 분리해야 합니다.");
+
+    renderScreen();
+  </script>
+</body>
+</html>
